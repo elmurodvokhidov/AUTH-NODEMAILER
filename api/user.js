@@ -4,7 +4,7 @@ const User = require("../models/user.js");
 const bcrypt = require("bcrypt");
 
 // signup
-router.post('/signup', (req, res) => {
+router.post('/signup', async (req, res) => {
     let { name, email, password } = req.body;
     name = name.trim();
     email = email.trim();
@@ -35,54 +35,47 @@ router.post('/signup', (req, res) => {
         });
     }
     else {
-        // Checking if user already exist
-        User.findOne({ email }).then(result => {
-            if (result.length) {
-                res.json({
-                    status: "FAILED",
-                    message: "User with the provided email already exist!"
-                })
-            }
-            else {
-                const saltRounds = 10
-                bcrypt.hash(password, saltRounds).then(hashedPassword => {
-                    const newUser = new User({
-                        name,
-                        email,
-                        password: hashedPassword
-                    });
+        try {
+            // Check if user with email already exists
+            const existingUser = await User.findOne({ email });
 
-                    newUser.save().then(result => {
-                        res.json({
-                            status: "SUCCESS",
-                            message: "Signup successful!",
-                            data: result
-                        });
-                    }).catch(error => {
-                        res.json({
-                            status: "FAILED",
-                            message: "An error occurred while hashing password!"
-                        });
-                    })
-                }).catch(error => {
-                    res.json({
-                        status: "FAILED",
-                        message: "An error occurred while saving user accunt!"
-                    });
-                })
+            if (existingUser) {
+                return res.status(400).json({
+                    status: "FAILED",
+                    message: "User with the provided email already exists!"
+                });
             }
-        }).catch(error => {
-            console.log(error);
-            res.json({
-                status: "FAILED",
-                message: "An error occurred while checking for existing user!"
+
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Create a new user
+            const newUser = new User({
+                name,
+                email,
+                password: hashedPassword
             });
-        })
+
+            // Save the new user to the database
+            const savedUser = await newUser.save();
+
+            return res.status(200).json({
+                status: "SUCCESS",
+                message: "Signup successful!",
+                data: savedUser
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: "FAILED",
+                message: "An error occurred during signup process."
+            });
+        }
     }
 });
 
 // signin
-router.post('/signin', (req, res) => {
+router.post('/signin', async (req, res) => {
     let { email, password } = req.body;
     email = email.trim();
     password = password.trim();
@@ -94,45 +87,40 @@ router.post('/signin', (req, res) => {
         });
     }
     else {
-        User.find({ email })
-            .then(data => {
-                if (data.length) {
-                    const hashedPassword = data[0].password;
-                    bcrypt.compare(password, hashedPassword).then(result => {
-                        if (result) {
-                            res.json({
-                                status: "SUCCESS",
-                                message: "Signin successful!",
-                                data: data
-                            });
-                        }
-                        else {
-                            res.json({
-                                status: "FAILED",
-                                message: "Invalid password entered!"
-                            });
-                        }
-                    })
-                        .catch(error => {
-                            res.json({
-                                status: "FAILED",
-                                message: "An error occurred while comparing passwords!"
-                            });
-                        })
-                }
-                else {
-                    res.json({
-                        status: "FAILED",
-                        message: "Invalid credentials entered!"
-                    });
-                }
-            })
-            .catch(error => {
-                res.json({
+        try {
+            // Check if user with email exists
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                return res.status(401).json({
                     status: "FAILED",
-                    message: "An error occurred while checking for existing user!"
+                    message: "Invalid credentials entered!"
                 });
-            })
+            }
+
+            // Compare hashed password
+            const passwordMatch = await bcrypt.compare(password, user.password);
+
+            if (passwordMatch) {
+                return res.status(200).json({
+                    status: "SUCCESS",
+                    message: "Signin successful!",
+                    // You may choose not to send the user data back in the response
+                    // data: user
+                });
+            } else {
+                return res.status(401).json({
+                    status: "FAILED",
+                    message: "Invalid password entered!"
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: "FAILED",
+                message: "An error occurred during sign-in process."
+            });
+        }
     }
 });
 

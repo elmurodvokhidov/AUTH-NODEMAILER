@@ -5,21 +5,28 @@ const bcrypt = require("bcrypt");
 
 // signup
 router.post('/signup', async (req, res) => {
-    let { name, email, password } = req.body;
-    name = name.trim();
+    let { first_name, last_name, email, password } = req.body;
+    first_name = first_name.trim();
+    last_name = last_name.trim();
     email = email.trim();
     password = password.trim();
 
-    if (name === "" || email === "" || password === "") {
+    if (first_name === "" || email === "" || password === "") {
         res.json({
             status: "FAILED",
             message: "Empty input fields!"
         });
     }
-    else if (!/^[a-zA-Z]*$/.test(name)) {
+    else if (!/^[a-zA-Z]*$/.test(first_name)) {
         res.json({
             status: "FAILED",
-            message: "Invalid name entered!"
+            message: "Invalid first name entered!"
+        });
+    }
+    else if (!/^[a-zA-Z]*$/.test(last_name)) {
+        res.json({
+            status: "FAILED",
+            message: "Invalid last name entered!"
         });
     }
     else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
@@ -51,7 +58,8 @@ router.post('/signup', async (req, res) => {
 
             // Create a new user
             const newUser = new User({
-                name,
+                first_name,
+                last_name,
                 email,
                 password: hashedPassword
             });

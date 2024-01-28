@@ -8,9 +8,6 @@ const PORT = process.env.PORT || 5000;
 
 
 app.use(bodyParser());
-app.use('/', (req, res) => {
-    res.send('Welcome to the Server Side! 👋')
-})
 app.use('/user', UserRouter);
 
 app.listen(PORT, () => {

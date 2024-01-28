@@ -36,7 +36,7 @@ router.post('/signup', (req, res) => {
     }
     else {
         // Checking if user already exist
-        User.find({ email }).then(result => {
+        User.findOne({ email }).then(result => {
             if (result.length) {
                 res.json({
                     status: "FAILED",

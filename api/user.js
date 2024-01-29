@@ -110,7 +110,7 @@ router.post('/signup', (req, res) => {
 });
 
 const sendVerificationEmail = ({ _id, email }, res) => {
-    const currentUrl = "http://localhost:5000/";
+    const currentUrl = "https://uitc-crm-api.onrender.com/";
     const uniqueString = uuidv4() + _id;
     const mailOptions = {
         from: process.env.AUTH_EMAIL,

@@ -11,8 +11,7 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS",
-                sans-serif;
+            font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
             height: 100vh;
             display: flex;
         }
@@ -21,7 +20,7 @@
             display: flex;
             flex-direction: column;
             margin: 0 auto;
-            width: 50%;
+            width: 35%;
             align-items: center;
             padding-bottom: 25px;
             padding-top: 10px;
@@ -41,6 +40,30 @@
             text-align: center;
             padding: 10px;
             width: 80%;
+        }
+
+        @media screen and (max-width: 1200px) {
+            div {
+                width: 45%;
+            }
+        }
+
+        @media screen and (max-width: 800px) {
+            div {
+                width: 60%;
+            }
+        }
+
+        @media screen and (max-width: 500px) {
+            div {
+                width: 80%;
+            }
+        }
+
+        @media screen and (max-width: 350px) {
+            div {
+                width: 90%;
+            }
         }
 
         @keyframes swing {
@@ -83,30 +106,15 @@
 
     const bodyContent = !error
         ? `<div style="background-color: #065f46">
-      <h2>Email has been verified</h2>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="85"
-        height="85"
-        fill="currentColor"
-        class="bi bi-check-circle-fill animated swing"
-        viewBox="0 0 16 16"
-      >
-        <path
-          d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"
-        />
+      <h2>Email has been verified!</h2>
+      <svg xmlns="http://www.w3.org/2000/svg" width="85" height="85" fill="currentColor" class="bi bi-check-circle-fill animated swing" viewBox="0 0 16 16" >
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
       </svg>
-      <h3>You can now log in</h3>
+      <h3>Now you can log in</h3>
     </div>`
         : `<div style="background-color: #991B1B">
       <h2>${message}</h2>
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="85" height="85" 
-        fill="currentColor" 
-        class="bi bi-x-circle-fill animated swing" 
-        viewBox="0 0 16 16"
-      >
+      <svg xmlns="http://www.w3.org/2000/svg" width="85" height="85" fill="currentColor" class="bi bi-x-circle-fill animated swing" viewBox="0 0 16 16" >
         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
       </svg>
       <h3>Please try again!</h3>

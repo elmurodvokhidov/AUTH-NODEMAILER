@@ -7,6 +7,7 @@ const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 const path = require("path");
+const ejs = require('ejs');
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -112,55 +113,68 @@ router.post('/signup', (req, res) => {
 const sendVerificationEmail = ({ _id, email }, res) => {
     const currentUrl = "https://uitc-crm-api.onrender.com/";
     const uniqueString = uuidv4() + _id;
-    const mailOptions = {
-        from: process.env.AUTH_EMAIL,
-        to: email,
-        subject: "Verify Your Email",
-        html: `<p>Verify your email address to complete the signup and login into your account.</p><p>This link <b>expires in 6 hours!</b></p><p>Press <a href=${currentUrl + "user/verify/" + _id + "/" + uniqueString} >here</a> to proceed!</p>`
-    };
+    const direction = currentUrl + "user/verify/" + _id + "/" + uniqueString;
 
-    // Hash the uniqueString
-    const saltRounds = 10;
-    bcrypt.hash(uniqueString, saltRounds)
-        .then(hashedUniqueString => {
-            const newVerification = new UserVerification({
-                userId: _id,
-                uniqueString: hashedUniqueString,
-                createdAt: Date.now(),
-                expiresAt: Date.now() + 21600000,
+    ejs.renderFile(path.join(__dirname, "../views/gmail.ejs"), { direction }, (error, html) => {
+        if (error) {
+            console.log(error);
+            res.json({
+                status: "FAILED",
+                message: "An error occurred while sending email ejs file!"
             });
+        }
+        else {
+            const mailOptions = {
+                from: process.env.AUTH_EMAIL,
+                to: email,
+                subject: "Verify Your Email",
+                html
+            };
 
-            newVerification.save()
-                .then(() => {
-                    transporter.sendMail(mailOptions)
+            // Hash the uniqueString
+            const saltRounds = 10;
+            bcrypt.hash(uniqueString, saltRounds)
+                .then(hashedUniqueString => {
+                    const newVerification = new UserVerification({
+                        userId: _id,
+                        uniqueString: hashedUniqueString,
+                        createdAt: Date.now(),
+                        expiresAt: Date.now() + 21600000,
+                    });
+
+                    newVerification.save()
                         .then(() => {
-                            res.json({
-                                status: "PENDING",
-                                message: "Verification email sent!"
-                            });
+                            transporter.sendMail(mailOptions)
+                                .then(() => {
+                                    res.json({
+                                        status: "PENDING",
+                                        message: "Verification email sent!"
+                                    });
+                                })
+                                .catch(error => {
+                                    console.log(error);
+                                    res.json({
+                                        status: "FAILED",
+                                        message: "Verification email failed!"
+                                    });
+                                })
                         })
                         .catch(error => {
                             console.log(error);
                             res.json({
                                 status: "FAILED",
-                                message: "Verification email failed!"
+                                message: "Couldn't save verification email data!"
                             });
                         })
                 })
-                .catch(error => {
-                    console.log(error);
+                .catch(() => {
                     res.json({
                         status: "FAILED",
-                        message: "Couldn't save verification email data!"
+                        message: "An error occurred while hashing email data!"
                     });
                 })
-        })
-        .catch(() => {
-            res.json({
-                status: "FAILED",
-                message: "An error occurred while hashing email data!"
-            });
-        })
+        }
+    });
 };
 
 // verify email

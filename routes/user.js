@@ -30,7 +30,7 @@ transporter.verify((error, success) => {
 
 // setting server url
 const development = "http://localhost:5000/";
-const production = "https://uitc-crm-api.onrender.com";
+const production = "https://uitc-crm-api.onrender.com/";
 const currentUrl = process.env.NODE_ENV ? production : development;
 
 // signup

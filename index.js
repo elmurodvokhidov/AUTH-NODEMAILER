@@ -1,6 +1,6 @@
 require("./config/db.js");
 const express = require("express");
-const UserRouter = require("./api/user.js");
+const UserRouter = require("./routes/user.js");
 
 const app = express();
 const bodyParser = express.json;

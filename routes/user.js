@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require("uuid");
 require("dotenv").config();
 const path = require("path");
 const ejs = require('ejs');
+const jwt = require("jsonwebtoken");
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -26,6 +27,11 @@ transporter.verify((error, success) => {
         console.log(success);
     }
 });
+
+// setting server url
+const development = "http://localhost:5000/";
+const production = "https://uitc-crm-api.onrender.com";
+const currentUrl = process.env.NODE_ENV ? production : development;
 
 // signup
 router.post('/signup', (req, res) => {
@@ -110,8 +116,8 @@ router.post('/signup', (req, res) => {
     }
 });
 
+// send the verification email
 const sendVerificationEmail = ({ _id, email }, res) => {
-    const currentUrl = "https://uitc-crm-api.onrender.com/";
     const uniqueString = uuidv4() + _id;
     const direction = currentUrl + "user/verify/" + _id + "/" + uniqueString;
 
@@ -176,6 +182,27 @@ const sendVerificationEmail = ({ _id, email }, res) => {
         }
     });
 };
+
+// resend the verification email
+router.post('/resendVerificationLink', async (req, res) => {
+    try {
+        let { userId, email } = req.body;
+
+        if (!userId || !email) {
+            throw Error("Empty user details are not allowed!");
+        }
+        else {
+            // delete existing records and resend
+            await UserVerification.deleteMany({ userId });
+            sendVerificationEmail({ _id: userId, email }, res);
+        }
+    } catch (error) {
+        res.json({
+            status: "FAILED",
+            message: `Verification link resend error ${error.message}`
+        });
+    }
+})
 
 // verify email
 router.get('/verify/:userId/:uniqueString', (req, res) => {
@@ -281,9 +308,10 @@ router.post('/signin', (req, res) => {
                     }
                     else {
                         const hashedPassword = data[0].password;
+                        const token = jwt.sign({ _id: data[0]._id }, process.env.JWT_KEY);
                         bcrypt.compare(password, hashedPassword).then(result => {
                             if (result) {
-                                res.json({
+                                res.header("x-auth-token", token).json({
                                     status: "SUCCESS",
                                     message: "Signin successful!",
                                     data: data
